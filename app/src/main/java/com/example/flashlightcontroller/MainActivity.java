@@ -22,14 +22,15 @@ import java.util.Timer;
 public class MainActivity extends AppCompatActivity {
 
     private boolean supportFlashLight;
-    private Button turnOn, turnOff,incDelay,decDelay;
-    private ToggleButton blinkButton;
+    private ImageView flashImageView;
+    TextView delayTextView;
     CameraManager cameraManager;
     String CameraID;
     Runnable runnable;
     Handler handler;
     int delay = 1000;
-    boolean flashOn;
+    boolean stableFlashLightOn = false, blinkingFlashLightOn = false;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,12 +38,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         checkPermission();
+        Button turnOn, turnOff, incDelay, decDelay;
+        ToggleButton blinkButton;
+
         // Check that flashlight is supported or not
         supportFlashLight = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
         // CameraManager
         cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
 
+        // Initiating Buttons
+        turnOn = findViewById(R.id.turn_on_btn);
+        turnOff = findViewById(R.id.turn_off_btn);
+        blinkButton = findViewById(R.id.blink_btn);
+        incDelay = findViewById(R.id.increase_delay_btn);
+        decDelay = findViewById(R.id.decrease_delay_btn);
+
+        flashImageView = findViewById(R.id.flash_image_view);
+        delayTextView = findViewById(R.id.delay_text_view);
+
+        delayTextView.setText(delay + "");
         try {
             CameraID = cameraManager.getCameraIdList()[0];
         } catch (Exception e) {
@@ -54,16 +69,18 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 System.out.println("Current Delay : " + delay);
                 try {
-                    if (!flashOn){
-                        cameraManager.setTorchMode(CameraID,true);
-                        flashOn = true;
-                    }else{
-                        cameraManager.setTorchMode(CameraID,false);
-                        flashOn = false;
+                    if (!blinkingFlashLightOn) {
+                        cameraManager.setTorchMode(CameraID, true);
+                        flashImageView.setImageResource(R.drawable.flash_on);
+                        blinkingFlashLightOn = true;
+                    } else {
+                        cameraManager.setTorchMode(CameraID, false);
+                        flashImageView.setImageResource(R.drawable.flash_off);
+                        blinkingFlashLightOn = false;
                     }
-                    handler.postDelayed(this,delay);
+                    handler.postDelayed(this, delay);
 
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -71,12 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler();
 
-        // Initiating Buttons
-        turnOn = findViewById(R.id.turn_on_btn);
-        turnOff = findViewById(R.id.turn_off_btn);
-        blinkButton = findViewById(R.id.blink_btn);
-        incDelay = findViewById(R.id.increase_delay_btn);
-        decDelay = findViewById(R.id.decrease_delay_btn);
+
 
         // Handling Button Events
         turnOn.setOnClickListener(new View.OnClickListener() {
@@ -86,8 +98,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if (status) {
                         cameraManager.setTorchMode(CameraID, true);
-                    }else{
-                        Toast.makeText(getApplicationContext(),"Permission not granted",Toast.LENGTH_LONG).show();
+                        flashImageView.setImageResource(R.drawable.flash_on);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -102,8 +115,9 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if (status) {
                         cameraManager.setTorchMode(CameraID, false);
-                    }else{
-                        Toast.makeText(getApplicationContext(),"Permission not granted",Toast.LENGTH_LONG).show();
+                        flashImageView.setImageResource(R.drawable.flash_off);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -115,18 +129,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
 
-                if(checked){
-                    flashOn = false;
-                    handler.postDelayed(runnable,delay);
-                }else{
+                if (checked) {
+                    stableFlashLightOn = false;
+                    handler.postDelayed(runnable, delay);
+                } else {
                     try {
                         handler.removeCallbacks(runnable);
-                        cameraManager.setTorchMode(CameraID,false);
-                        flashOn = false;
+                        cameraManager.setTorchMode(CameraID, false);
+                        flashImageView.setImageResource(R.drawable.flash_off);
+                        stableFlashLightOn = false;
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
                     }
-
                 }
             }
         });
@@ -135,14 +149,16 @@ public class MainActivity extends AppCompatActivity {
         incDelay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                delay+=50;
+                delay += 50;
+                delayTextView.setText(delay + "");
             }
         });
 
         decDelay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                delay-=50;
+                delay -= 50;
+                delayTextView.setText(delay + "");
             }
         });
     }
