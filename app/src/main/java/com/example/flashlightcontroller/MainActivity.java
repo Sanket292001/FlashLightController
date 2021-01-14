@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean supportFlashLight;
     private ImageView flashImageView;
-    TextView delayTextView;
+    TextView delayTextView,flashOnOffStatus;
     CameraManager cameraManager;
     String CameraID;
     Runnable runnable;
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         flashImageView = findViewById(R.id.flash_image_view);
         delayTextView = findViewById(R.id.delay_text_view);
 
-        delayTextView.setText(delay + "");
+        delayTextView.setText("Delay: " + delay);
         try {
             CameraID = cameraManager.getCameraIdList()[0];
         } catch (Exception e) {
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
-                System.out.println("Current Delay : " + delay);
+//                System.out.println("Current Delay : " + delay);
                 try {
                     if (!blinkingFlashLightOn) {
                         cameraManager.setTorchMode(CameraID, true);
@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
         handler = new Handler();
 
 
-
         // Handling Button Events
         turnOn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,10 +96,19 @@ public class MainActivity extends AppCompatActivity {
                 boolean status = checkPermission();
                 try {
                     if (status) {
-                        cameraManager.setTorchMode(CameraID, true);
-                        flashImageView.setImageResource(R.drawable.flash_on);
+                        if (blinkButton.isChecked()) {
+                            displayToast("First turn off blinking flashlight");
+                        } else {
+                            if (stableFlashLightOn) {
+                                displayToast("Stable flashlight is already on");
+                            } else {
+                                cameraManager.setTorchMode(CameraID, true);
+                                flashImageView.setImageResource(R.drawable.flash_on);
+                                stableFlashLightOn = true;
+                            }
+                        }
                     } else {
-                        Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
+                        displayToast("Permission not granted");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -114,10 +122,16 @@ public class MainActivity extends AppCompatActivity {
                 boolean status = checkPermission();
                 try {
                     if (status) {
-                        cameraManager.setTorchMode(CameraID, false);
-                        flashImageView.setImageResource(R.drawable.flash_off);
+                        if (!stableFlashLightOn) {
+                            displayToast("Stable flashlight is already off");
+                        } else {
+                            cameraManager.setTorchMode(CameraID, false);
+                            flashImageView.setImageResource(R.drawable.flash_off);
+                            stableFlashLightOn = false;
+                        }
+
                     } else {
-                        Toast.makeText(getApplicationContext(), "Permission not granted", Toast.LENGTH_LONG).show();
+                        displayToast("Permission not granted");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -128,20 +142,30 @@ public class MainActivity extends AppCompatActivity {
         blinkButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-
-                if (checked) {
-                    stableFlashLightOn = false;
-                    handler.postDelayed(runnable, delay);
-                } else {
-                    try {
-                        handler.removeCallbacks(runnable);
-                        cameraManager.setTorchMode(CameraID, false);
-                        flashImageView.setImageResource(R.drawable.flash_off);
-                        stableFlashLightOn = false;
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
+                boolean status = checkPermission();
+                if (status) {
+                    if (checked) {
+                        if (stableFlashLightOn) {
+                            displayToast("Please first turn off stable flashlight");
+                            blinkButton.setChecked(false);
+                        } else {
+                            blinkingFlashLightOn = true;
+                            handler.postDelayed(runnable, delay);
+                        }
+                    } else {
+                        try {
+                            handler.removeCallbacks(runnable);
+                            cameraManager.setTorchMode(CameraID, false);
+                            flashImageView.setImageResource(R.drawable.flash_off);
+                            blinkingFlashLightOn = false;
+                        } catch (CameraAccessException e) {
+                            e.printStackTrace();
+                        }
                     }
+                } else {
+                    displayToast("Permission not granted");
                 }
+
             }
         });
 
@@ -150,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 delay += 50;
-                delayTextView.setText(delay + "");
+                delayTextView.setText("Delay: " + delay);
             }
         });
 
@@ -158,9 +182,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 delay -= 50;
-                delayTextView.setText(delay + "");
+                delayTextView.setText("Delay: " + delay);
+                if (delay <= 250) {
+                    displayToast("Warning: Do not decrease delay below current value, it might damage your phone.");
+                }
             }
         });
+    }
+
+    public void displayToast(String str) {
+        Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
     }
 
     public boolean checkPermission() {
@@ -173,7 +204,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case 2:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
