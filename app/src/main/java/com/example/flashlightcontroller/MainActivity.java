@@ -56,8 +56,9 @@ public class MainActivity extends AppCompatActivity {
 
         flashImageView = findViewById(R.id.flash_image_view);
         delayTextView = findViewById(R.id.delay_text_view);
+        flashOnOffStatus = findViewById(R.id.flash_on_off_status);
 
-        delayTextView.setText("Delay: " + delay);
+        delayTextView.setText("Delay: " + delay + "ms");
         try {
             CameraID = cameraManager.getCameraIdList()[0];
         } catch (Exception e) {
@@ -72,10 +73,12 @@ public class MainActivity extends AppCompatActivity {
                     if (!blinkingFlashLightOn) {
                         cameraManager.setTorchMode(CameraID, true);
                         flashImageView.setImageResource(R.drawable.flash_on);
+                        flashOnOffStatus.setText("ON");
                         blinkingFlashLightOn = true;
                     } else {
                         cameraManager.setTorchMode(CameraID, false);
                         flashImageView.setImageResource(R.drawable.flash_off);
+                        flashOnOffStatus.setText("OFF");
                         blinkingFlashLightOn = false;
                     }
                     handler.postDelayed(this, delay);
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
                             } else {
                                 cameraManager.setTorchMode(CameraID, true);
                                 flashImageView.setImageResource(R.drawable.flash_on);
+                                flashOnOffStatus.setText("ON");
                                 stableFlashLightOn = true;
                             }
                         }
@@ -127,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             cameraManager.setTorchMode(CameraID, false);
                             flashImageView.setImageResource(R.drawable.flash_off);
+                            flashOnOffStatus.setText("OFF");
                             stableFlashLightOn = false;
                         }
 
@@ -150,13 +155,14 @@ public class MainActivity extends AppCompatActivity {
                             blinkButton.setChecked(false);
                         } else {
                             blinkingFlashLightOn = true;
-                            handler.postDelayed(runnable, delay);
+                            handler.postDelayed(runnable, 0000);
                         }
                     } else {
                         try {
                             handler.removeCallbacks(runnable);
                             cameraManager.setTorchMode(CameraID, false);
                             flashImageView.setImageResource(R.drawable.flash_off);
+                            flashOnOffStatus.setText("OFF");
                             blinkingFlashLightOn = false;
                         } catch (CameraAccessException e) {
                             e.printStackTrace();
@@ -174,17 +180,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 delay += 50;
-                delayTextView.setText("Delay: " + delay);
+                delayTextView.setText("Delay: " + delay +"ms");
             }
         });
 
         decDelay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                delay -= 50;
-                delayTextView.setText("Delay: " + delay);
-                if (delay <= 250) {
-                    displayToast("Warning: Do not decrease delay below current value, it might damage your phone.");
+                if (delay<=100){
+                    displayToast("You cannot decrease delay below 100");
+                }else{
+                    delay -= 50;
+                    delayTextView.setText("Delay: " + delay + "ms");
+                    if (delay <= 250) {
+                        displayToast("Warning: Do not decrease delay below current value, it might damage your phone.");
+                    }
                 }
             }
         });
