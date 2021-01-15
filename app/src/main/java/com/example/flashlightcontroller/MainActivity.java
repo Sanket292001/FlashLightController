@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     displayToast("Permission not granted");
+                    blinkButton.setChecked(false);
                 }
 
             }
