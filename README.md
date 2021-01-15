@@ -26,4 +26,6 @@ This is an Android Application used to control FlashLight of mobile. By using th
  - Minimum Value: 100ms
  - Maximum Value: As you wish (Depends on how much delay you want between FlashLight)
  
-Note: Remove AppAssets folder before using application from this repository 
+### Note: 
+- Remove AppAssets folder before using application from this repository 
+- Application .apk file is present in AppAssets Folder
