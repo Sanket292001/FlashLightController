@@ -6,7 +6,7 @@ This is an Android Application used to control FlashLight of mobile. By using th
   <img src="https://github.com/Sanket292001/FlashLightController/blob/master/AppAssets/SplashScreen.jpg?raw=true" height="400"/>
   <img src="https://github.com/Sanket292001/FlashLightController/blob/master/AppAssets/CameraPermission.jpg?raw=true" height="400"/>
 </p>
----
+
 <p align="center">
   <img src="https://github.com/Sanket292001/FlashLightController/blob/master/AppAssets/After%20Allowing%20Permission.jpg?raw=true" height="400"/>
   <img src="https://github.com/Sanket292001/FlashLightController/blob/master/AppAssets/Homepage.jpg?raw=true" height="400"/>
