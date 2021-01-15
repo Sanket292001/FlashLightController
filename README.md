@@ -33,7 +33,7 @@ This is an Android Application used to control FlashLight of mobile. By using th
 - Maximum Value: As you wish (Depends on how much delay you want between FlashLight)
  
 #### Permission:
-- Camera permission is needed to control flashlight of application.
+- Camera permission is needed to control flashlight from application.
 
 ### Note: 
 - Remove AppAssets folder before using application from this repository 
